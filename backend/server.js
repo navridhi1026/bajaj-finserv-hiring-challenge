@@ -13,9 +13,9 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '..', 'frontend')));
 
 // ── Identity (fill in your real details) ──────────────────────────────────
-const USER_ID = 'johndoe_17091999';         // fullname_ddmmyyyy
-const EMAIL_ID = 'john.doe@chitkara.edu.in';
-const COLLEGE_ROLL_NUMBER = '2310992167';
+const USER_ID = 'navridhisharma_10122004';
+const EMAIL_ID = 'navridhi2080.be23@chitkara.edu.in';
+const COLLEGE_ROLL_NUMBER = '2310992080';
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
