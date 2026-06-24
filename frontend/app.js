@@ -5,7 +5,7 @@
 // ── Config ────────────────────────────────────────────────────────────────
 // Change this to your deployed backend URL when hosting.
 // If both frontend and backend are served from the same origin, you can use '/bfhl'.
-const API_BASE = '';
+const API_BASE = 'https://bajaj-finserv-hiring-challenge.onrender.com';
 
 // ── DOM refs ──────────────────────────────────────────────────────────────
 const nodeInput       = document.getElementById('node-input');
