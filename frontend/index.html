@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BFHL Node Hierarchy Explorer</title>
+  <meta name="description" content="Interactive tool to explore hierarchical node relationships using the BFHL REST API. Enter node pairs like A->B and visualise the resulting tree structures." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <!-- Animated background orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="logo">
+          <span class="logo-icon">⬡</span>
+          <span class="logo-text">BFHL <span class="logo-accent">Explorer</span></span>
+        </div>
+        <div class="header-badge">
+          <span class="pulse-dot"></span>
+          API Live
+        </div>
+      </div>
+    </header>
+
+    <!-- Hero -->
+    <section class="hero">
+      <h1 class="hero-title">Node Hierarchy <span class="gradient-text">Processor</span></h1>
+      <p class="hero-subtitle">Enter parent→child node pairs and instantly visualise the hierarchical tree structures, cycle detection, and relationship analytics.</p>
+    </section>
+
+    <!-- Input Panel -->
+    <main>
+      <div class="panel input-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">
+            <span class="panel-icon">✦</span>
+            Input Node Pairs
+          </h2>
+          <div class="example-pills">
+            <button class="pill-btn" id="btn-example-simple" title="Load simple tree example">Simple Tree</button>
+            <button class="pill-btn" id="btn-example-cycle" title="Load cycle example">With Cycle</button>
+            <button class="pill-btn" id="btn-example-full" title="Load full spec example">Full Example</button>
+            <button class="pill-btn pill-clear" id="btn-clear" title="Clear input">Clear</button>
+          </div>
+        </div>
+
+        <div class="input-hint">
+          Enter node pairs separated by commas or newlines. Each pair must be in the format <code>X-&gt;Y</code> (single uppercase letters).
+        </div>
+
+        <div class="textarea-wrapper">
+          <textarea
+            id="node-input"
+            class="node-textarea"
+            placeholder='e.g. A->B, A->C, B->D, C->E&#10;or on separate lines:&#10;A->B&#10;A->C&#10;B->D'
+            rows="8"
+            spellcheck="false"
+            autocomplete="off"
+          ></textarea>
+          <div class="textarea-footer">
+            <span id="entry-count" class="entry-counter">0 entries</span>
+          </div>
+        </div>
+
+        <button class="submit-btn" id="submit-btn">
+          <span class="btn-text">Analyse Hierarchy</span>
+          <span class="btn-icon">→</span>
+          <span class="btn-loader" id="btn-loader" hidden>
+            <span class="spinner"></span>
+          </span>
+        </button>
+      </div>
+
+      <!-- Error Banner -->
+      <div class="error-banner" id="error-banner" hidden>
+        <span class="error-icon">⚠</span>
+        <span class="error-msg" id="error-msg"></span>
+        <button class="error-close" id="error-close">✕</button>
+      </div>
+
+      <!-- Results Section -->
+      <div id="results-section" hidden>
+
+        <!-- Identity Card -->
+        <div class="panel identity-panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><span class="panel-icon">◈</span> Identity</h2>
+          </div>
+          <div class="identity-grid">
+            <div class="id-field">
+              <span class="id-label">User ID</span>
+              <span class="id-value mono" id="res-userid"></span>
+            </div>
+            <div class="id-field">
+              <span class="id-label">Email</span>
+              <span class="id-value mono" id="res-email"></span>
+            </div>
+            <div class="id-field">
+              <span class="id-label">Roll Number</span>
+              <span class="id-value mono" id="res-roll"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary Stats -->
+        <div class="stats-row">
+          <div class="stat-card stat-trees">
+            <div class="stat-icon">🌲</div>
+            <div class="stat-value" id="stat-trees">0</div>
+            <div class="stat-label">Valid Trees</div>
+          </div>
+          <div class="stat-card stat-cycles">
+            <div class="stat-icon">🔄</div>
+            <div class="stat-value" id="stat-cycles">0</div>
+            <div class="stat-label">Cycles</div>
+          </div>
+          <div class="stat-card stat-largest">
+            <div class="stat-icon">🏆</div>
+            <div class="stat-value" id="stat-largest">—</div>
+            <div class="stat-label">Largest Tree Root</div>
+          </div>
+          <div class="stat-card stat-invalid">
+            <div class="stat-icon">✗</div>
+            <div class="stat-value" id="stat-invalid">0</div>
+            <div class="stat-label">Invalid Entries</div>
+          </div>
+          <div class="stat-card stat-dupes">
+            <div class="stat-icon">⧉</div>
+            <div class="stat-value" id="stat-dupes">0</div>
+            <div class="stat-label">Duplicates</div>
+          </div>
+        </div>
+
+        <!-- Hierarchies -->
+        <div class="panel">
+          <div class="panel-header">
+            <h2 class="panel-title"><span class="panel-icon">❋</span> Hierarchies</h2>
+          </div>
+          <div id="hierarchies-container" class="hierarchies-grid"></div>
+        </div>
+
+        <!-- Flags -->
+        <div class="two-col-grid">
+          <div class="panel flags-panel">
+            <div class="panel-header">
+              <h2 class="panel-title"><span class="panel-icon red-icon">✗</span> Invalid Entries</h2>
+            </div>
+            <div id="invalid-list" class="tag-list"></div>
+          </div>
+          <div class="panel flags-panel">
+            <div class="panel-header">
+              <h2 class="panel-title"><span class="panel-icon amber-icon">⧉</span> Duplicate Edges</h2>
+            </div>
+            <div id="duplicate-list" class="tag-list"></div>
+          </div>
+        </div>
+
+        <!-- Raw JSON toggle -->
+        <div class="panel raw-panel">
+          <div class="panel-header raw-header" id="raw-toggle">
+            <h2 class="panel-title"><span class="panel-icon">{ }</span> Raw JSON Response</h2>
+            <span class="toggle-chevron" id="raw-chevron">▼</span>
+          </div>
+          <div id="raw-body" class="raw-body" hidden>
+            <pre class="json-pre" id="raw-json"></pre>
+          </div>
+        </div>
+
+      </div>
+    </main>
+
+    <footer class="site-footer">
+      <p>Built for the Chitkara Full Stack Engineering Challenge · BFHL Round 1</p>
+    </footer>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
